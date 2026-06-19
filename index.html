@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduShelf - E-Book Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .book-card:hover .book-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+
+    <header class="custom-gradient text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-book-open text-3xl"></i>
+                <h1 class="text-2xl font-bold tracking-wide">EduShelf <span class="text-xs font-normal bg-white text-indigo-700 px-2 py-0.5 rounded-full ml-2">v1.0</span></h1>
+            </div>
+            
+            <div class="relative w-full sm:w-80">
+                <input type="text" id="searchInput" placeholder="Search books by title..." 
+                       class="w-full pl-10 pr-4 py-2 rounded-lg text-gray-800 bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-inner transition-all">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10 flex-grow">
+        <div class="mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-800 tracking-tight">Your Digital Bookshelf</h2>
+            <p class="text-gray-500 mt-1">Browse, read previews, or download your reference lecture materials instantly.</p>
+        </div>
+
+        <div id="booksGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+            </div>
+
+        <div id="noResults" class="hidden text-center py-16">
+            <i class="fa-solid fa-box-open text-5xl text-gray-300 mb-4"></i>
+            <p class="text-xl text-gray-500 font-semibold">No books match your search criteria.</p>
+            <button onclick="clearSearch()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium underline">View all books</button>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-6 border-t border-gray-700 mt-auto">
+        <div class="container mx-auto px-6 text-center text-sm">
+            <p>&copy; 2026 EduShelf E-Book Portal. All documents belong to their respective authors.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Array cataloging your uploaded document collection
+        const booksData = [
+            {
+                id: 1,
+                title: "Lecture 1: Overview of WAP",
+                filename: "Lecture 1-Overview of WAP.pdf",
+                category: "Wireless Programming",
+                icon: "fa-network-wired",
+                color: "from-blue-500 to-indigo-600",
+                description: "Wireless Application Protocol structural specifications, design frameworks, and mobility network challenges."
+            },
+            {
+                id: 2,
+                title: "Introduction to jQuery",
+                filename: "1.06-jQuery-Intro.pdf",
+                category: "Web Development",
+                icon: "fa-js",
+                color: "from-yellow-400 to-orange-500",
+                description: "An overview of the jQuery library framework, selector structures, DOM manipulations, and DOM event bindings."
+            },
+            {
+                id: 3,
+                title: "Introduction to MySQL",
+                filename: "Introduction to MySQL.pdf",
+                category: "Databases",
+                icon: "fa-database",
+                color: "from-cyan-500 to-blue-600",
+                description: "Relational Database Management Systems (RDBMS) foundations, primary keys, and architectural features."
+            },
+            {
+                id: 4,
+                title: "XML Basics",
+                filename: "XML Basics.pdf",
+                category: "Data Structure",
+                icon: "fa-file-code",
+                color: "from-emerald-500 to-teal-600",
+                description: "Extensible Markup Language definitions, structured data parsing, and XML Document Object Models (DOM)."
+            },
+            {
+                id: 5,
+                title: "Introduction to JavaScript",
+                filename: "javascript1.pdf",
+                category: "Programming",
+                icon: "fa-code",
+                color: "from-purple-500 to-pink-600",
+                description: "Core client-side browser scripting components, document trees, event lifecycles, and form validation."
+            }
+        ];
+
+        const booksGrid = document.getElementById('booksGrid');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+
+        // Function to render the UI grid of book cards
+        function renderBooks(books) {
+            booksGrid.innerHTML = '';
+            
+            if (books.length === 0) {
+                booksGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            booksGrid.classList.remove('hidden');
+            noResults.classList.add('hidden');
+
+            books.forEach(book => {
+                const cardHTML = `
+                    <div class="book-card bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+                        
+                        <div class="relative bg-gradient-to-br ${book.color} h-48 flex flex-col justify-between p-4 text-white select-none">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-black/20 backdrop-blur-md px-2.5 py-1 rounded-full self-start">
+                                ${book.category}
+                            </span>
+                            <div class="text-center my-auto">
+                                <i class="fa-solid ${book.icon} text-5xl opacity-90 group-hover:scale-110 transition-transform duration-300"></i>
+                            </div>
+                            <span class="text-xs opacity-75 truncate"><i class="fa-solid fa-paperclip mr-1"></i> PDF Document</span>
+                            
+                            <div class="book-overlay absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 flex items-center justify-center space-x-3 p-2">
+                                <a href="${book.filename}" target="_blank" class="bg-white text-gray-800 px-3 py-2 rounded-md text-xs font-semibold hover:bg-gray-100 flex items-center shadow">
+                                    <i class="fa-solid fa-eye mr-1.5"></i> Preview
+                                </a>
+                                <a href="${book.filename}" download="${book.filename}" class="bg-indigo-600 text-white px-3 py-2 rounded-md text-xs font-semibold hover:bg-indigo-700 flex items-center shadow">
+                                    <i class="fa-solid fa-download mr-1.5"></i> Get File
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-gray-800 line-clamp-2 text-base leading-tight mb-1 group-hover:text-indigo-600 transition-colors" title="${book.title}">
+                                    ${book.title}
+                                </h3>
+                                <p class="text-xs text-gray-500 line-clamp-3 mb-4 leading-relaxed">
+                                    ${book.description}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-gray-50 gap-2">
+                                <a href="${book.filename}" target="_blank" class="text-xs font-medium text-gray-600 hover:text-indigo-600 transition-colors py-1 flex items-center">
+                                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Open
+                                </a>
+                                <a href="${book.filename}" download="${book.filename}" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-all flex items-center">
+                                    <i class="fa-solid fa-circle-down mr-1"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                booksGrid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // Live Search Filtering Logic
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filteredBooks = booksData.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) || 
+                book.category.toLowerCase().includes(searchTerm) ||
+                book.description.toLowerCase().includes(searchTerm)
+            );
+            renderBooks(filteredBooks);
+        });
+
+        // Search Reset UI Utility
+        function clearSearch() {
+            searchInput.value = '';
+            renderBooks(booksData);
+        }
+
+        // Initialize display layout with complete asset payload on boot
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBooks(booksData);
+        });
+    </script>
+</body>
+</html>
